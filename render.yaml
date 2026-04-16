@@ -1,8 +1,11 @@
 services:
   - type: web
     name: gamearka-online
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production

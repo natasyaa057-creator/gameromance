@@ -1276,11 +1276,97 @@ const charPickError = document.getElementById("charPickError");
 
 let localName = null;
 let socket = null;
+let loveConnectionGuardTimer = null;
+let loveLoginSettled = false;
+
+function getLoveWebSocketUrl() {
+  if (typeof window.GAMEARKA_WS_URL === "string" && window.GAMEARKA_WS_URL.trim()) {
+    return window.GAMEARKA_WS_URL.trim();
+  }
+  const qp = new URLSearchParams(window.location.search).get("ws");
+  if (qp && qp.trim()) {
+    const t = qp.trim();
+    if (t.startsWith("ws://") || t.startsWith("wss://")) {
+      return t;
+    }
+    const secure = window.location.protocol === "https:";
+    return `${secure ? "wss" : "ws"}://${t}`;
+  }
+  const meta = document.querySelector('meta[name="gamearka:websocket"]');
+  const metaContent = meta && meta.getAttribute("content") && meta.getAttribute("content").trim();
+  if (metaContent) {
+    if (metaContent.startsWith("ws://") || metaContent.startsWith("wss://")) {
+      return metaContent;
+    }
+    const secure = window.location.protocol === "https:";
+    return `${secure ? "wss" : "ws"}://${metaContent.replace(/^\/+/, "")}`;
+  }
+
+  const secure = window.location.protocol === "https:";
+  const wsProto = secure ? "wss" : "ws";
+  const host = window.location.hostname;
+  const port = window.location.port;
+
+  if (port === "443" || (secure && !port)) {
+    return `${wsProto}://${host}`;
+  }
+  if (port && port !== "80") {
+    return `${wsProto}://${host}:${port}`;
+  }
+  /* HTTP lewat Apache/XAMPP (port 80): WebSocket ada di server Node, biasanya 3000 */
+  return `${wsProto}://${host}:3000`;
+}
+
+function clearLoveConnectionGuard() {
+  if (loveConnectionGuardTimer) {
+    clearTimeout(loveConnectionGuardTimer);
+    loveConnectionGuardTimer = null;
+  }
+}
+
+function failLoveLogin(message) {
+  if (loveLoginSettled) {
+    return;
+  }
+  loveLoginSettled = true;
+  clearLoveConnectionGuard();
+  hideRomanticLoaderNow();
+  if (connectionInfo) {
+    connectionInfo.textContent = message;
+  }
+  if (charPickError) {
+    charPickError.textContent = message;
+  }
+  localName = null;
+  resetHistoryPresenceSnapshot();
+  resetHangStatTracking();
+  lovePartnerChatPrimed = false;
+  lovePartnerChatSnapshot = "";
+  loveNotifLastPartnerEnv = undefined;
+  if (charPickOverlay) {
+    charPickOverlay.classList.remove("is-hidden");
+    charPickOverlay.setAttribute("aria-hidden", "false");
+  }
+  if (controlsInfo) {
+    controlsInfo.textContent = "Pilih karakter untuk mulai";
+  }
+  updateHeaderAvatars();
+  try {
+    if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+      socket.close();
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  socket = null;
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 const urlHint = (urlParams.get("name") || "").toLowerCase();
 if (urlHint === "zahra" || urlHint === "arka") {
-  charPickInput.value = urlHint;
+  if (charPickInput) {
+    charPickInput.value = urlHint;
+  }
 }
 
 const MOVE_KEYS = {
@@ -1819,27 +1905,45 @@ function getMoveDelta() {
 }
 
 function openSocket() {
-  const isSecure = window.location.protocol === "https:";
-  const protocol = isSecure ? "wss" : "ws";
-  const socketUrl = `${protocol}://${window.location.host}`;
+  const socketUrl = getLoveWebSocketUrl();
   const socket = new WebSocket(socketUrl);
 
   socket.addEventListener("open", () => {
-    connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
+    if (connectionInfo) {
+      connectionInfo.textContent = `Terhubung ke ${socketUrl} · menyambung…`;
+    }
     if (!window.__loveWsOpenChimed) {
       window.__loveWsOpenChimed = true;
       LoveSfx.gentleChime();
     } else {
       LoveSfx.softPop();
     }
-    socket.send(JSON.stringify({ type: "join", name: localName }));
+    if (localName) {
+      socket.send(JSON.stringify({ type: "join", name: localName }));
+    }
+  });
+
+  socket.addEventListener("error", () => {
+    if (!localName || state.localId || loveLoginSettled) {
+      return;
+    }
+    failLoveLogin(
+      "Tidak bisa menyambung ke server game. Di XAMPP: jalankan juga Node di folder ini (`npm start`, port 3000). "
+      + "Atur meta gamearka:websocket atau ?ws=HOST:PORT bila perlu.",
+    );
   });
 
   socket.addEventListener("close", () => {
+    clearLoveConnectionGuard();
     if (!localName) {
       return;
     }
-    connectionInfo.textContent = "Status: offline (reconnecting...)";
+    if (!state.localId) {
+      return;
+    }
+    if (connectionInfo) {
+      connectionInfo.textContent = "Status: offline (reconnecting...)";
+    }
     setTimeout(() => {
       if (localName) {
         socket = openSocket();
@@ -1848,10 +1952,17 @@ function openSocket() {
   });
 
   socket.addEventListener("message", (event) => {
-    const payload = JSON.parse(event.data);
+    let payload;
+    try {
+      payload = JSON.parse(event.data);
+    } catch (err) {
+      return;
+    }
     if (payload.type === "join_denied") {
       if (payload.reason === "role_taken") {
         hideRomanticLoaderNow();
+        clearLoveConnectionGuard();
+        loveLoginSettled = true;
         resetLoveNotificationState();
         const roleLabel = payload.role === "zahra" ? "Zahra" : "Arka";
         charPickError.textContent = `${roleLabel} sudah dipakai pemain lain. Ketik nama lain.`;
@@ -1866,17 +1977,31 @@ function openSocket() {
       return;
     }
     if (payload.type === "init") {
+      loveLoginSettled = true;
+      clearLoveConnectionGuard();
       state.localId = payload.playerId;
       syncPlayers(payload.players);
       renderTreeState(payload.tree || {});
       updateHeaderAvatars();
       hideRomanticLoader();
+      if (connectionInfo) {
+        connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
+      }
       refreshNotifPermButton();
       maybeShowDailyLoginGift();
     }
     if (payload.type === "state") {
       syncPlayers(payload.players);
       renderTreeState(payload.tree || {});
+      const lo = document.getElementById("loadingOverlay");
+      if (localName && state.localId && lo && !lo.classList.contains("is-hidden")) {
+        loveLoginSettled = true;
+        clearLoveConnectionGuard();
+        hideRomanticLoader();
+        if (connectionInfo) {
+          connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
+        }
+      }
     }
     if (payload.type === "hang_success") {
       localStorage.setItem(STORAGE_LAST_HANG, String(Date.now()));
@@ -1943,8 +2068,11 @@ function openSocket() {
   return socket;
 }
 
-charPickForm.addEventListener("submit", (event) => {
+charPickForm?.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (!charPickInput || !charPickError || !charPickOverlay) {
+    return;
+  }
   charPickError.textContent = "";
   const raw = charPickInput.value.trim().toLowerCase();
   let chosen;
@@ -1956,6 +2084,8 @@ charPickForm.addEventListener("submit", (event) => {
     charPickError.textContent = "Ketik arka atau zahra saja.";
     return;
   }
+  loveLoginSettled = false;
+  clearLoveConnectionGuard();
   localName = chosen;
   resetHistoryPresenceSnapshot();
   resetHangStatTracking();
@@ -1968,11 +2098,20 @@ charPickForm.addEventListener("submit", (event) => {
   updateHeaderAvatars();
 
   if (socket && socket.readyState === WebSocket.OPEN) {
-    connectionInfo.textContent = "Mengganti peran...";
+    connectionInfo.textContent = "Mengganti peran…";
     socket.send(JSON.stringify({ type: "join", name: localName }));
   } else {
-    connectionInfo.textContent = "Menyambung...";
+    connectionInfo.textContent = `Menyambung ke ${getLoveWebSocketUrl()}…`;
     socket = openSocket();
+    loveConnectionGuardTimer = setTimeout(() => {
+      loveConnectionGuardTimer = null;
+      if (!loveLoginSettled && localName && !state.localId) {
+        failLoveLogin(
+          "Tidak ada balasan dari server. Pastikan di folder project ini perintah `npm start` sudah jalan (port 3000). "
+          + "Halaman dari XAMPP (port 80) tetap memakai WebSocket ke Node :3000.",
+        );
+      }
+    }, 12000);
   }
 });
 
@@ -1994,7 +2133,7 @@ window.addEventListener("keyup", (event) => {
   });
 });
 
-chatForm.addEventListener("submit", (event) => {
+chatForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = sanitizeText(chatInput.value.trim());
   if (!message || !socket || socket.readyState !== WebSocket.OPEN) {
@@ -2015,7 +2154,7 @@ chatForm.addEventListener("submit", (event) => {
   updateTreeVitalityUi();
 });
 
-hangForm.addEventListener("submit", (event) => {
+hangForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = sanitizeLongText(hangInput.value.trim());
   if (!message || !socket || socket.readyState !== WebSocket.OPEN) {

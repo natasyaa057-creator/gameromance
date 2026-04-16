@@ -55,12 +55,16 @@ function serializeTree() {
 }
 
 function sendSnapshotTo(socket, playerId) {
-  socket.send(JSON.stringify({
-    type: "init",
-    playerId,
-    players: serializePlayers(),
-    tree: serializeTree(),
-  }));
+  try {
+    socket.send(JSON.stringify({
+      type: "init",
+      playerId,
+      players: serializePlayers(),
+      tree: serializeTree(),
+    }));
+  } catch (err) {
+    /* socket baru saja tertutup */
+  }
 }
 
 function broadcastState() {
@@ -75,7 +79,11 @@ function broadcast(payload) {
   const text = JSON.stringify(payload);
   wss.clients.forEach((client) => {
     if (client.readyState === 1) {
-      client.send(text);
+      try {
+        client.send(text);
+      } catch (err) {
+        /* klien putus saat kirim — abaikan */
+      }
     }
   });
 }
@@ -109,16 +117,24 @@ wss.on("connection", (socket) => {
     }
 
     if (data.type === "join") {
-      const want = data.name === "zahra" ? "zahra" : "arka";
+      const rawName = typeof data.name === "string" ? data.name.trim().toLowerCase() : "";
+      if (rawName !== "zahra" && rawName !== "arka") {
+        return;
+      }
+      const want = rawName === "zahra" ? "zahra" : "arka";
       const roleTaken = Array.from(players.values()).some(
         (other) => other.id !== playerId && other.name === want,
       );
       if (roleTaken) {
-        socket.send(JSON.stringify({
-          type: "join_denied",
-          reason: "role_taken",
-          role: want,
-        }));
+        try {
+          socket.send(JSON.stringify({
+            type: "join_denied",
+            reason: "role_taken",
+            role: want,
+          }));
+        } catch (err) {
+          /* ignore */
+        }
         return;
       }
       current.name = want;
@@ -160,7 +176,11 @@ wss.on("connection", (socket) => {
       });
       treeState.totalHungMessages += 1;
       broadcastState();
-      socket.send(JSON.stringify({ type: "hang_success" }));
+      try {
+        socket.send(JSON.stringify({ type: "hang_success" }));
+      } catch (err) {
+        /* ignore */
+      }
       return;
     }
 
@@ -172,35 +192,47 @@ wss.on("connection", (socket) => {
       const remaining = OPEN_COOLDOWN_MS > 0 ? OPEN_COOLDOWN_MS - (now - lastOpen) : 0;
 
       if (OPEN_COOLDOWN_MS > 0 && remaining > 0) {
-        socket.send(JSON.stringify({
-          type: "open_result",
-          ok: false,
-          reason: "cooldown",
-          remainingMs: remaining,
-        }));
+        try {
+          socket.send(JSON.stringify({
+            type: "open_result",
+            ok: false,
+            reason: "cooldown",
+            remainingMs: remaining,
+          }));
+        } catch (err) {
+          /* ignore */
+        }
         return;
       }
 
       const targetMessageIndex = treeState.hangingMessages.findIndex((message) => message.from === targetRole);
       if (targetMessageIndex === -1) {
-        socket.send(JSON.stringify({
-          type: "open_result",
-          ok: false,
-          reason: "empty",
-        }));
+        try {
+          socket.send(JSON.stringify({
+            type: "open_result",
+            ok: false,
+            reason: "empty",
+          }));
+        } catch (err) {
+          /* ignore */
+        }
         return;
       }
 
       const [openedMessage] = treeState.hangingMessages.splice(targetMessageIndex, 1);
       openCooldownByRole[openerRole] = now;
       broadcastState();
-      socket.send(JSON.stringify({
-        type: "open_result",
-        ok: true,
-        from: openedMessage.from,
-        message: openedMessage.content,
-        openedAt: now,
-      }));
+      try {
+        socket.send(JSON.stringify({
+          type: "open_result",
+          ok: true,
+          from: openedMessage.from,
+          message: openedMessage.content,
+          openedAt: now,
+        }));
+      } catch (err) {
+        /* ignore */
+      }
     }
   });
 

@@ -1,6 +1,4 @@
-/* Love Tree — UI seperti referensi (latar dari gambar aset) */
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap");
-
+/* Love Tree — font dimuat dari index.html (link Google Fonts) */
 body.love-tree-theme {
   animation: none !important;
   background-size: auto !important;
