@@ -30,7 +30,7 @@ body.love-tree-theme {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 1200px;
+  max-width: 1320px;
   margin: 0 auto;
   width: 100%;
 }
@@ -38,15 +38,42 @@ body.love-tree-theme {
 .lt-header {
   flex-shrink: 0;
   padding: 12px 16px 16px;
-  background: linear-gradient(180deg, rgba(48, 26, 78, 0.95) 0%, rgba(28, 14, 48, 0.82) 100%);
-  border-bottom: 1px solid rgba(255, 180, 230, 0.2);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(45, 27, 78, 0.92) 0%, rgba(26, 12, 42, 0.88) 100%);
+  border-bottom: 1px solid rgba(255, 180, 230, 0.22);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.38);
 }
 
-.lt-brand {
-  text-align: center;
-  margin-bottom: 14px;
+.lt-header--mock .lt-header-top {
+  margin-bottom: 12px;
+}
+
+.lt-brand--mock {
+  text-align: left;
+}
+
+.lt-brand--mock .lt-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lt-logo-heart {
+  font-size: 0.55em;
+  filter: drop-shadow(0 0 8px rgba(255, 120, 180, 0.8));
+}
+
+.lt-brand-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 6px;
+}
+
+.lt-brand-meta .lt-clock,
+.lt-brand-meta .lt-tree-level {
+  margin-top: 0;
 }
 
 .lt-logo {
@@ -54,21 +81,12 @@ body.love-tree-theme {
   font-family: "Pacifico", cursive;
   font-size: clamp(1.75rem, 4vw, 2.35rem);
   font-weight: 400;
-  background: linear-gradient(90deg, #ffb8e8, #ffd4f8, #c8b4ff);
+  background: linear-gradient(90deg, #fff6ff, #ffb8e8, #ffd4f8);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   text-shadow: 0 2px 24px rgba(255, 150, 220, 0.35);
   filter: drop-shadow(0 2px 16px rgba(255, 160, 220, 0.25));
-}
-
-.lt-tagline {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.78rem;
-  color: rgba(230, 210, 255, 0.75);
-  font-weight: 600;
-  letter-spacing: 0.04em;
 }
 
 .lt-header-cards {
@@ -104,9 +122,47 @@ body.love-tree-theme {
   font-weight: 700;
 }
 
+.lt-card-player {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.lt-card-player-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.lt-card-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.lt-card-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 230, 250, 0.95);
+  margin-bottom: 4px;
+}
+
+.lt-heart-ic {
+  color: #f080a0;
+  font-size: 0.85rem;
+  filter: drop-shadow(0 0 6px rgba(240, 128, 160, 0.65));
+}
+
 .lt-card-avatar {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: linear-gradient(145deg, #7a5cff, #ff6eb4);
   display: flex;
@@ -115,7 +171,7 @@ body.love-tree-theme {
   font-weight: 800;
   font-size: 1.1rem;
   color: #fff;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   border: 2px solid rgba(255, 255, 255, 0.35);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.15),
@@ -128,8 +184,8 @@ body.love-tree-theme {
 
 .lt-card-memo {
   display: block;
-  font-size: 0.68rem;
-  color: rgba(220, 200, 255, 0.9);
+  font-size: 0.62rem;
+  color: rgba(220, 200, 255, 0.82);
   line-height: 1.35;
 }
 
@@ -143,14 +199,26 @@ body.love-tree-theme {
   padding: 12px 8px;
 }
 
-.lt-card-day > span:first-child {
+.lt-card-day--pill {
+  border-radius: 999px;
+  padding: 14px 16px;
+  background: linear-gradient(145deg, rgba(55, 32, 92, 0.72) 0%, rgba(38, 20, 62, 0.82) 100%);
+  border: 1px solid rgba(255, 190, 240, 0.28);
+}
+
+.lt-day-ic {
+  font-size: 1.1rem;
+  opacity: 0.95;
+}
+
+.lt-card-day-title {
   font-size: 0.72rem;
-  color: rgba(255, 210, 240, 0.9);
+  color: rgba(255, 210, 240, 0.92);
   font-weight: 700;
 }
 
-.lt-card-day strong {
-  font-size: 0.75rem;
+.lt-open-limit-line {
+  font-size: 0.78rem;
   color: #fff;
   font-weight: 800;
   line-height: 1.35;
@@ -167,25 +235,25 @@ body.love-tree-theme {
 
 .lt-sidebar {
   flex-shrink: 0;
-  width: 56px;
+  width: 78px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 6px;
+  gap: 8px;
+  padding: 12px 8px;
   align-items: center;
-  background: rgba(40, 22, 62, 0.65);
-  border: 1px solid rgba(255, 180, 230, 0.2);
+  background: rgba(45, 27, 78, 0.55);
+  border: 1px solid rgba(255, 180, 230, 0.22);
   border-radius: 18px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
   align-self: stretch;
 }
 
 .lt-sb-btn {
-  width: 44px;
-  height: 44px;
+  width: 100%;
+  min-height: 44px;
   border-radius: 14px;
   border: 1px solid rgba(255, 200, 255, 0.3);
-  background: rgba(70, 40, 100, 0.5);
+  background: rgba(70, 40, 100, 0.45);
   color: #ffe8ff;
   cursor: pointer;
   display: flex;
@@ -193,6 +261,43 @@ body.love-tree-theme {
   justify-content: center;
   font-size: 1.15rem;
   transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.lt-sb-stack {
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 4px 6px;
+  position: relative;
+  min-height: 56px;
+}
+
+.lt-sb-ic {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.lt-sb-txt {
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 220, 250, 0.88);
+  line-height: 1.1;
+}
+
+.lt-music-on-pill {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #0d2818;
+  background: linear-gradient(145deg, #7bed9f, #2ed573);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(46, 213, 115, 0.45);
 }
 
 .lt-sb-btn:hover {
@@ -215,8 +320,8 @@ body.love-tree-theme {
 
 .lt-history-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: 0;
   min-width: 17px;
   height: 17px;
   padding: 0 4px;
@@ -234,6 +339,11 @@ body.love-tree-theme {
   pointer-events: none;
 }
 
+.lt-history-badge.is-hidden,
+.lt-music-on-pill.is-hidden {
+  display: none !important;
+}
+
 .lt-stage-wrap {
   flex: 1;
   display: flex;
@@ -243,6 +353,65 @@ body.love-tree-theme {
   overflow: hidden;
   border: 1px solid rgba(255, 190, 230, 0.22);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);
+}
+
+.lt-scene-row {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 0;
+  gap: 10px;
+  position: relative;
+}
+
+.lt-scene-row > .game-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.lt-scene-sidepanel {
+  flex-shrink: 0;
+  width: min(210px, 30vw);
+  padding: 16px 8px 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.lt-side-day-card {
+  pointer-events: auto;
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 18px;
+  background: rgba(45, 27, 78, 0.58);
+  border: 1px solid rgba(255, 190, 240, 0.28);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.lt-side-day-icon {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 12px rgba(255, 120, 180, 0.45));
+}
+
+.lt-side-day-heading {
+  margin: 0 0 8px 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #ffe8ff;
+  letter-spacing: 0.04em;
+}
+
+.lt-side-day-blurb {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(230, 210, 255, 0.9);
 }
 
 .love-tree-theme .game-area {
@@ -262,12 +431,16 @@ body.love-tree-theme {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-color: #3d2558;
+  background-color: #2d1b4e;
   background-image:
+    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(120, 80, 180, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 12%, rgba(255, 200, 240, 0.14) 0%, transparent 50%),
+    radial-gradient(circle 2px at 78% 9%, rgba(255, 255, 255, 0.95) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 88% 14%, rgba(255, 255, 255, 0.75) 0%, transparent 100%),
     url("assets/love-tree-bg.png"),
-    linear-gradient(180deg, #4a2d6a 0%, #2a1840 100%);
-  background-size: cover;
-  background-position: center bottom;
+    linear-gradient(180deg, #3d2868 0%, #2d1b4e 42%, #1a0f2e 100%);
+  background-size: auto, auto, auto, auto, cover, auto;
+  background-position: center, center, center, center, center bottom, center;
   background-repeat: no-repeat;
   transition: filter 1.2s ease, box-shadow 1.2s ease;
   animation: loveSceneKen 42s ease-in-out infinite alternate;
@@ -405,26 +578,42 @@ body.love-tree-theme {
 }
 
 .love-tree-theme .day-counter-wrap {
-  top: 18%;
+  top: 62%;
   z-index: 4;
+  transform: translate(-50%, 0);
+  left: 50%;
+  padding: 14px 22px 16px;
+  border-radius: 50% 50% 48% 48% / 42% 42% 58% 58%;
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 35%, rgba(255, 130, 190, 0.95) 0%, rgba(255, 80, 150, 0.88) 45%, rgba(200, 40, 120, 0.92) 100%);
+  border: 2px solid rgba(255, 220, 240, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 12px 40px rgba(255, 60, 140, 0.45),
+    inset 0 2px 16px rgba(255, 255, 255, 0.35);
 }
 
 .love-tree-theme .day-counter {
   font-family: "Nunito", sans-serif;
-  font-size: clamp(0.95rem, 2.5vw, 1.15rem);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  font-size: clamp(1rem, 2.8vw, 1.25rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(120, 20, 60, 0.55);
 }
 
 .love-tree-theme .day-counter-sub {
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(255, 245, 252, 0.95);
+  text-shadow: 0 1px 6px rgba(80, 10, 40, 0.4);
 }
 
 .love-tree-theme .day-counter-glow {
-  filter: blur(16px);
-  opacity: 0.35;
+  filter: blur(22px);
+  opacity: 0.55;
+  background: radial-gradient(circle, rgba(255, 100, 180, 0.5) 0%, transparent 70%);
 }
 
 .love-tree-theme .character {
@@ -486,12 +675,16 @@ body.love-tree-theme {
 }
 
 .love-tree-theme .chat-bubble {
-  border-radius: 14px;
+  border-radius: 20px;
   font-family: "Nunito", sans-serif;
-  font-size: 0.72rem;
-  background: rgba(25, 12, 42, 0.92);
-  border: 1px solid rgba(255, 200, 255, 0.35);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #3a2a38;
+  background: linear-gradient(180deg, #fffefb 0%, #fff5fa 100%);
+  border: 1px solid rgba(255, 200, 230, 0.85);
+  box-shadow:
+    0 4px 0 rgba(255, 180, 210, 0.25),
+    0 16px 36px rgba(40, 20, 50, 0.28);
 }
 
 .love-tree-theme .hanging-envelope-wrap {
@@ -665,16 +858,16 @@ body.love-tree-theme {
 }
 
 .lt-clock {
-  margin-top: 10px;
-  font-size: 0.72rem;
+  margin-top: 0;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: rgba(255, 230, 250, 0.95);
+  color: rgba(255, 230, 250, 0.92);
   letter-spacing: 0.04em;
 }
 
 .lt-tree-level {
-  margin-top: 6px;
-  font-size: 0.68rem;
+  margin-top: 0;
+  font-size: 0.65rem;
   font-weight: 800;
   color: #ffd88a;
   text-shadow: 0 0 12px rgba(255, 200, 120, 0.45);
@@ -1939,21 +2132,94 @@ body.love-tree-theme {
   }
 }
 
-/* —— Suasana: partikel lembut, latar “hidup”, UI lebih hangat —— */
+/* —— Suasana: partikel lembut + kunang-kunang & kelopak (referensi UI) —— */
 .ambient-sparkles {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.12) 0 1px, transparent 2px),
-    radial-gradient(circle at 85% 18%, rgba(255, 220, 255, 0.1) 0 1px, transparent 2px),
-    radial-gradient(circle at 40% 70%, rgba(200, 230, 255, 0.08) 0 1px, transparent 2px),
-    radial-gradient(circle at 72% 55%, rgba(255, 200, 240, 0.09) 0 1px, transparent 2px);
-  background-size: 180px 220px, 220px 180px, 260px 200px, 200px 240px;
+    radial-gradient(circle at 12% 30%, rgba(255, 248, 200, 0.2) 0 1.5px, transparent 3px),
+    radial-gradient(circle at 88% 22%, rgba(255, 220, 160, 0.16) 0 1px, transparent 2.5px),
+    radial-gradient(circle at 42% 68%, rgba(255, 200, 240, 0.1) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 52%, rgba(255, 190, 220, 0.11) 0 1px, transparent 2px);
+  background-size: 200px 240px, 240px 200px, 280px 220px, 220px 260px;
   animation: ambientSparkDrift 22s linear infinite;
-  opacity: 0.55;
+  opacity: 0.62;
   mix-blend-mode: screen;
+}
+
+.lt-fireflies {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.lt-firefly {
+  position: absolute;
+  left: var(--fx);
+  top: var(--fy);
+  width: var(--fs, 5px);
+  height: var(--fs, 5px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fffef8 0%, #ffe082 45%, #ff9800 100%);
+  box-shadow:
+    0 0 10px 3px rgba(255, 220, 120, 0.55),
+    0 0 22px 6px rgba(255, 180, 80, 0.25);
+  opacity: 0.85;
+  animation: ltFireflyBob 4.5s ease-in-out infinite;
+  animation-delay: var(--fd, 0s);
+}
+
+@keyframes ltFireflyBob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.55;
+  }
+  40% {
+    transform: translate(-6px, -10px) scale(1.15);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(4px, 6px) scale(0.92);
+    opacity: 0.75;
+  }
+}
+
+.lt-petals {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.lt-petal {
+  position: absolute;
+  left: var(--px);
+  top: -8%;
+  width: 10px;
+  height: 14px;
+  border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%;
+  background: linear-gradient(135deg, rgba(255, 220, 240, 0.95) 0%, rgba(255, 160, 200, 0.85) 100%);
+  opacity: 0.75;
+  transform: rotate(-18deg) scale(var(--ps, 1));
+  animation: ltPetalFall var(--pdur, 16s) linear infinite;
+  animation-delay: var(--pd, 0s);
+  box-shadow: 0 0 8px rgba(255, 150, 190, 0.35);
+}
+
+@keyframes ltPetalFall {
+  0% {
+    transform: translateY(0) translateX(0) rotate(-12deg) scale(var(--ps, 1));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(110vh) translateX(28px) rotate(40deg) scale(var(--ps, 1));
+    opacity: 0.2;
+  }
 }
 
 @keyframes ambientSparkDrift {
@@ -2169,12 +2435,32 @@ body.love-tree-theme {
     flex-direction: row;
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
     height: auto;
     padding: 8px;
+  }
+
+  .lt-sb-btn.lt-sb-stack {
+    flex: 1;
+    min-width: 68px;
+    max-width: 88px;
   }
 
   .lt-sb-btn span:not(.lt-history-badge) {
     writing-mode: horizontal-tb;
     font-size: 0.5rem;
+  }
+
+  .lt-scene-row {
+    flex-direction: column;
+  }
+
+  .lt-scene-sidepanel {
+    width: 100%;
+    padding: 0 8px 8px;
+  }
+
+  .love-tree-theme .day-counter-wrap {
+    top: 58%;
   }
 }

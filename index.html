@@ -9,43 +9,75 @@
 </head>
 <body class="love-tree-theme">
   <div class="app-shell">
-    <header class="lt-header">
-      <div class="lt-brand">
-        <h1 class="lt-logo">Love Tree</h1>
-        <span class="lt-tagline">Pohon Cinta Kalian · Arka &amp; Zahra</span>
-        <div class="lt-clock" id="ltClockWib" aria-live="polite">WIB — …</div>
-        <div class="lt-tree-level" id="ltTreeLevel">Pohon Lv. 1</div>
+    <header class="lt-header lt-header--mock">
+      <div class="lt-header-top">
+        <div class="lt-brand lt-brand--mock">
+          <h1 class="lt-logo">Love Tree <span class="lt-logo-heart" aria-hidden="true">💕</span></h1>
+          <div class="lt-brand-meta">
+            <span class="lt-clock" id="ltClockWib" aria-live="polite">WIB — …</span>
+            <span class="lt-tree-level" id="ltTreeLevel">Pohon Lv. 1</span>
+          </div>
+        </div>
       </div>
       <div class="lt-header-cards">
         <div class="lt-card lt-card-you">
           <span class="lt-card-label">Kamu</span>
-          <div class="lt-card-avatar" id="ltAvatarYou" aria-hidden="true">?</div>
-          <span id="treeInfo" class="lt-card-memo">—</span>
+          <div class="lt-card-player">
+            <div class="lt-card-avatar" id="ltAvatarYou" aria-hidden="true">?</div>
+            <div class="lt-card-player-text">
+              <strong class="lt-card-name" id="ltNameYou">—</strong>
+              <span class="lt-card-stat"><span class="lt-heart-ic" aria-hidden="true">❤</span> <span id="ltStatYou">0</span> Pesan</span>
+              <span id="treeInfo" class="lt-card-memo">—</span>
+            </div>
+          </div>
         </div>
-        <div class="lt-card lt-card-day">
-          <span>Pesan hari ini</span>
-          <strong id="openLimitInfo">—</strong>
+        <div class="lt-card lt-card-day lt-card-day--pill">
+          <span class="lt-day-ic" aria-hidden="true">📅</span>
+          <span class="lt-card-day-title">Pesan hari ini</span>
+          <strong id="openLimitInfo" class="lt-open-limit-line">—</strong>
         </div>
         <div class="lt-card lt-card-partner">
           <span class="lt-card-label">Pasangan</span>
-          <div class="lt-card-avatar lt-card-avatar--partner" id="ltAvatarPartner" aria-hidden="true">?</div>
-          <span id="ltPartnerMemo" class="lt-card-memo">—</span>
+          <div class="lt-card-player">
+            <div class="lt-card-avatar lt-card-avatar--partner" id="ltAvatarPartner" aria-hidden="true">?</div>
+            <div class="lt-card-player-text">
+              <strong class="lt-card-name" id="ltNamePartner">—</strong>
+              <span class="lt-card-stat"><span class="lt-heart-ic" aria-hidden="true">❤</span> <span id="ltStatPartner">0</span> Pesan</span>
+              <span id="ltPartnerMemo" class="lt-card-memo">—</span>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
     <div class="lt-workspace">
       <aside class="lt-sidebar" aria-label="Menu">
-        <button type="button" class="lt-sb-btn lt-sb-btn--music" id="ltBtnMusic" title="Masuk — musik romantis" aria-expanded="false" aria-controls="musicPanel">🎵</button>
-        <button type="button" class="lt-sb-btn" id="ltBtnHang" title="Gantung pesan di pohon">✉️</button>
-        <button type="button" class="lt-sb-btn" id="ltBtnChat" title="Chat cepat">💬</button>
-        <button type="button" class="lt-sb-btn" id="ltBtnTree" title="Fokus pohon">🌳</button>
-        <button type="button" class="lt-sb-btn lt-sb-btn--history" id="ltBtnHistory" title="Buku kenangan — riwayat chat dan kehadiran" aria-expanded="false" aria-controls="historyJournalPanel">📜<span id="ltHistoryBadge" class="lt-history-badge is-hidden" aria-hidden="true"></span></button>
+        <button type="button" class="lt-sb-btn lt-sb-stack" id="ltBtnHang" title="Tulis / gantung pesan di pohon">
+          <span class="lt-sb-ic" aria-hidden="true">✉️</span>
+          <span class="lt-sb-txt">Tulis</span>
+        </button>
+        <button type="button" class="lt-sb-btn lt-sb-stack lt-sb-btn--history" id="ltBtnHistory" title="Kenangan — riwayat chat dan kehadiran" aria-expanded="false" aria-controls="historyJournalPanel">
+          <span class="lt-sb-ic" aria-hidden="true">📜</span>
+          <span class="lt-sb-txt">Kenangan</span>
+          <span id="ltHistoryBadge" class="lt-history-badge is-hidden" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="lt-sb-btn lt-sb-stack" id="ltBtnTree" title="Fokus pohon">
+          <span class="lt-sb-ic" aria-hidden="true">🌳</span>
+          <span class="lt-sb-txt">Pohon</span>
+        </button>
+        <button type="button" class="lt-sb-btn lt-sb-stack lt-sb-btn--music" id="ltBtnMusic" title="Musik romantis" aria-expanded="false" aria-controls="musicPanel">
+          <span class="lt-sb-ic" aria-hidden="true">🎵</span>
+          <span class="lt-sb-txt">Musik</span>
+          <span id="ltMusicOnPill" class="lt-music-on-pill is-hidden" aria-hidden="true">ON</span>
+        </button>
       </aside>
 
       <div class="lt-stage-wrap">
-        <main id="gameArea" class="game-area" data-sky="day" data-tree-tier="normal" data-weather="clear" data-moon-couple="0" data-couple-awake="1">
+        <div class="lt-scene-row">
+          <main id="gameArea" class="game-area" data-sky="day" data-tree-tier="normal" data-weather="clear" data-moon-couple="0" data-couple-awake="1">
           <div class="ambient-sparkles" aria-hidden="true"></div>
+          <div class="lt-fireflies" id="ltFireflies" aria-hidden="true"></div>
+          <div class="lt-petals" id="ltPetals" aria-hidden="true"></div>
           <div class="love-scene-bg" aria-hidden="true"></div>
           <div class="sky-cycle-layer" id="skyCycleLayer" aria-hidden="true"></div>
           <div class="dusk-romantic-layer" id="duskRomanticLayer" aria-hidden="true"></div>
@@ -77,6 +109,14 @@
             <span class="sleep-ghost-label">Menunggu…</span>
           </div>
         </main>
+        <aside class="lt-scene-sidepanel" aria-label="Ringkasan pesan hari ini">
+          <div class="lt-side-day-card">
+            <div class="lt-side-day-icon" aria-hidden="true">✉️</div>
+            <h3 class="lt-side-day-heading">Pesan hari ini</h3>
+            <p class="lt-side-day-blurb" id="ltSideDayBlurb">Pilih karakter untuk mulai.</p>
+          </div>
+        </aside>
+        </div>
 
         <div class="lt-bottom-bar">
           <p id="controlsInfo" class="lt-hint">Pilih karakter untuk mulai</p>

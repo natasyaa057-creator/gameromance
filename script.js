@@ -11,6 +11,111 @@ const STORAGE_HISTORY_LAST_READ = "gamearka_history_last_read_v1";
 
 const HISTORY_JOURNAL_MAX = 500;
 const HISTORY_TEXT_MAX = 2000;
+const STORAGE_MSG_SENT_STATS = "gamearka_msg_sent_stats_v1";
+const STORAGE_TREE_OPENS_DAY = "gamearka_tree_opens_wib_v1";
+
+let hangStatPrimed = false;
+let hangSeenIds = new Set();
+
+function resetHangStatTracking() {
+  hangStatPrimed = false;
+  hangSeenIds = new Set();
+}
+
+function readMsgSentStats() {
+  try {
+    const raw = localStorage.getItem(STORAGE_MSG_SENT_STATS);
+    const o = JSON.parse(raw || "{}");
+    return {
+      arka: Math.max(0, parseInt(o.arka, 10) || 0),
+      zahra: Math.max(0, parseInt(o.zahra, 10) || 0),
+    };
+  } catch (e) {
+    return { arka: 0, zahra: 0 };
+  }
+}
+
+function writeMsgSentStats(stats) {
+  localStorage.setItem(STORAGE_MSG_SENT_STATS, JSON.stringify({
+    arka: stats.arka,
+    zahra: stats.zahra,
+  }));
+}
+
+function bumpMsgSent(role, delta = 1) {
+  const r = role === "zahra" ? "zahra" : "arka";
+  const stats = readMsgSentStats();
+  stats[r] += Math.max(0, delta);
+  writeMsgSentStats(stats);
+  updateLoveHud();
+}
+
+function getOpenCountToday() {
+  const key = getJakartaDateKey();
+  try {
+    const raw = localStorage.getItem(STORAGE_TREE_OPENS_DAY);
+    const o = JSON.parse(raw || "{}");
+    if (o && o.date === key) {
+      return Math.max(0, parseInt(o.count, 10) || 0);
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return 0;
+}
+
+function bumpOpenCountToday() {
+  const key = getJakartaDateKey();
+  let o = { date: key, count: 0 };
+  try {
+    const raw = localStorage.getItem(STORAGE_TREE_OPENS_DAY);
+    const prev = JSON.parse(raw || "{}");
+    if (prev && prev.date === key) {
+      o.count = Math.max(0, parseInt(prev.count, 10) || 0);
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  o.date = key;
+  o.count += 1;
+  localStorage.setItem(STORAGE_TREE_OPENS_DAY, JSON.stringify(o));
+}
+
+function fillTwilightParticles() {
+  const fireHost = document.getElementById("ltFireflies");
+  const petHost = document.getElementById("ltPetals");
+  if (!fireHost || fireHost.dataset.filled === "1") {
+    return;
+  }
+  fireHost.dataset.filled = "1";
+  const positions = [
+    [8, 72, 0], [18, 58, 0.4], [28, 80, 0.8], [42, 64, 1.1], [55, 78, 0.2],
+    [68, 52, 0.6], [78, 70, 1.3], [88, 60, 0.9], [12, 42, 1.5], [92, 38, 0.3],
+    [35, 88, 1.2], [62, 88, 0.5], [50, 48, 1.7], [22, 32, 0.7], [74, 28, 1.4],
+    [6, 55, 1.0], [94, 72, 0.15], [48, 22, 1.6], [58, 35, 0.55],
+  ];
+  positions.forEach(([x, y, d], i) => {
+    const s = document.createElement("span");
+    s.className = "lt-firefly";
+    s.style.setProperty("--fx", `${x}%`);
+    s.style.setProperty("--fy", `${y}%`);
+    s.style.setProperty("--fd", `${d}s`);
+    s.style.setProperty("--fs", `${4 + (i % 4)}px`);
+    fireHost.appendChild(s);
+  });
+  if (petHost && petHost.dataset.filled !== "1") {
+    petHost.dataset.filled = "1";
+    for (let i = 0; i < 22; i += 1) {
+      const p = document.createElement("span");
+      p.className = "lt-petal";
+      p.style.setProperty("--px", `${(i * 37) % 100}%`);
+      p.style.setProperty("--pd", `${(i % 9) * 0.35}s`);
+      p.style.setProperty("--ps", `${0.85 + (i % 5) * 0.08}`);
+      p.style.setProperty("--pdur", `${14 + (i % 7)}s`);
+      petHost.appendChild(p);
+    }
+  }
+}
 
 function getJakartaDateKey() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -66,19 +171,7 @@ function syncStoryLoveDay() {
   const stage = getStoryAgeStage(day);
   document.body.dataset.ageStage = stage;
 
-  const label = document.getElementById("loveDayLabel");
-  const sub = document.querySelector(".day-counter-sub");
-  if (label) {
-    label.textContent = `Day ${day}`;
-  }
-  if (sub) {
-    const line = stage === "child"
-      ? "Anak-anak bersama (Day 1–199) · Arka biru, Zahra pink"
-      : stage === "adult"
-        ? "Dewasa bersama (Day 200–499)"
-        : "Bersama sampai tua (Day 500+)";
-    sub.textContent = `${line} · cerita WIB`;
-  }
+  updateTreeHeartHud();
   return day;
 }
 
@@ -415,8 +508,94 @@ function updateTreeVitalityUi() {
     levelEl.textContent = `Pohon Lv. ${level}${tag}`;
   }
 
+  updateTreeHeartHud();
   applyTreeShapeFromState();
   updateSceneMoodLayers();
+}
+
+function updateTreeHeartHud() {
+  const label = document.getElementById("loveDayLabel");
+  const sub = document.querySelector(".day-counter-sub");
+  const total = Number(state?.tree?.totalHungMessages) || 0;
+  const level = computeTreeLevelFromTotal(total);
+  const day = window.__storyLoveDay || 1;
+  const st = getStoryAgeStage(day);
+  if (label) {
+    label.textContent = `Level ${level}`;
+  }
+  if (sub) {
+    const era = st === "child" ? "Muda bersama" : st === "adult" ? "Dewasa bersama" : "Sejati bersama";
+    sub.textContent = `Pohon Cinta Kalian · ${era} · Day ${day} WIB`;
+  }
+}
+
+function updateLoveHud() {
+  const you = document.getElementById("ltAvatarYou");
+  const partner = document.getElementById("ltAvatarPartner");
+  const youName = document.getElementById("ltNameYou");
+  const partnerName = document.getElementById("ltNamePartner");
+  const statYou = document.getElementById("ltStatYou");
+  const statPartner = document.getElementById("ltStatPartner");
+  const stats = readMsgSentStats();
+  if (!localName) {
+    if (you) {
+      you.textContent = "?";
+    }
+    if (partner) {
+      partner.textContent = "?";
+    }
+    if (youName) {
+      youName.textContent = "—";
+    }
+    if (partnerName) {
+      partnerName.textContent = "—";
+    }
+    if (statYou) {
+      statYou.textContent = "0";
+    }
+    if (statPartner) {
+      statPartner.textContent = "0";
+    }
+    return;
+  }
+  if (you) {
+    you.textContent = localName === "zahra" ? "Z" : "A";
+  }
+  if (partner) {
+    partner.textContent = localName === "zahra" ? "A" : "Z";
+  }
+  const mine = localName === "zahra" ? "zahra" : "arka";
+  const theirs = mine === "arka" ? "zahra" : "arka";
+  if (youName) {
+    youName.textContent = mine === "zahra" ? "Zahra" : "Arka";
+  }
+  if (partnerName) {
+    partnerName.textContent = theirs === "zahra" ? "Zahra" : "Arka";
+  }
+  if (statYou) {
+    statYou.textContent = String(stats[mine]);
+  }
+  if (statPartner) {
+    statPartner.textContent = String(stats[theirs]);
+  }
+}
+
+function updateSideDayBlurb(nOther, openedLine) {
+  const el = document.getElementById("ltSideDayBlurb");
+  if (!el) {
+    return;
+  }
+  if (!localName) {
+    el.textContent = "Pilih karakter untuk mulai.";
+    return;
+  }
+  const opens = getOpenCountToday();
+  const mid = openedLine && openedLine !== "—" ? openedLine : `${opens} amplop dibuka hari ini (WIB)`;
+  if (nOther > 0) {
+    el.textContent = `Kamu sudah membuka ${opens} amplop hari ini. ${mid} Masih ada ${nOther} amplop pasangan di pohon — ketuk pohon ya.`;
+  } else {
+    el.textContent = `Kamu sudah membuka ${opens} amplop hari ini. ${mid} Semua amplop pasangan sudah terbuka — sampai jumpa besok ya.`;
+  }
 }
 
 function ensureLoveAudioCtx() {
@@ -708,6 +887,7 @@ function maybeNotifyPartnerChatFromSync(nextPlayers) {
     pushLoveTreeNotification("Ada pesan chat baru dari pasangan.");
     const fr = partner.name === "zahra" ? "zahra" : "arka";
     appendHistoryEntry({ kind: "chat_received", fromRole: fr, text: truncateHistoryText(msg) });
+    bumpMsgSent(fr, 1);
   }
   if (!msg) {
     lovePartnerChatSnapshot = "";
@@ -719,6 +899,7 @@ function resetLoveNotificationState() {
   lovePartnerChatPrimed = false;
   lovePartnerChatSnapshot = "";
   resetHistoryPresenceSnapshot();
+  resetHangStatTracking();
 }
 
 let historyPresenceRoles = null;
@@ -1019,11 +1200,20 @@ function setupMusicPanel() {
     list.appendChild(li);
   });
 
+  const pill = document.getElementById("ltMusicOnPill");
+  const syncMusicPill = () => {
+    if (!pill || !btnMusic) {
+      return;
+    }
+    pill.classList.toggle("is-hidden", !btnMusic.classList.contains("is-on"));
+  };
+
   const togglePanel = () => {
     const hidden = panel.classList.toggle("is-hidden");
     panel.setAttribute("aria-hidden", hidden ? "true" : "false");
     btnMusic.classList.toggle("is-on", !hidden);
     btnMusic.setAttribute("aria-expanded", hidden ? "false" : "true");
+    syncMusicPill();
   };
 
   btnMusic.addEventListener("click", (e) => {
@@ -1037,6 +1227,7 @@ function setupMusicPanel() {
     panel.setAttribute("aria-hidden", "true");
     btnMusic.classList.remove("is-on");
     btnMusic.setAttribute("aria-expanded", "false");
+    syncMusicPill();
   });
 
   document.addEventListener("click", (e) => {
@@ -1045,6 +1236,7 @@ function setupMusicPanel() {
       panel.setAttribute("aria-hidden", "true");
       btnMusic.classList.remove("is-on");
       btnMusic.setAttribute("aria-expanded", "false");
+      syncMusicPill();
     }
   });
 
@@ -1060,7 +1252,10 @@ function setupMusicPanel() {
     list.querySelectorAll("button.is-active").forEach((x) => x.classList.remove("is-active"));
     userChosenMusicLock = false;
     updateMoodMusicForSky(getCurrentSkyPhase());
+    syncMusicPill();
   });
+
+  syncMusicPill();
 }
 
 const gameArea = document.getElementById("gameArea");
@@ -1474,18 +1669,7 @@ function updateCouplePresenceUi(playerList) {
 }
 
 function updateHeaderAvatars() {
-  const you = document.getElementById("ltAvatarYou");
-  const partner = document.getElementById("ltAvatarPartner");
-  if (!you || !partner) {
-    return;
-  }
-  if (!localName) {
-    you.textContent = "?";
-    partner.textContent = "?";
-    return;
-  }
-  you.textContent = localName === "zahra" ? "Z" : "A";
-  partner.textContent = localName === "zahra" ? "A" : "Z";
+  updateLoveHud();
 }
 
 function addTreeDecor(count, className) {
@@ -1557,14 +1741,15 @@ function renderTreeState(tree) {
   renderTreeEnvelopes(state.tree.hangingMessages);
 
   const partnerMemo = document.getElementById("ltPartnerMemo");
+  let nOther = 0;
   if (localName) {
     const myRole = localName === "zahra" ? "zahra" : "arka";
     const otherRole = myRole === "arka" ? "zahra" : "arka";
     const nMine = state.tree.hangingMessages.filter((m) => m.from === myRole).length;
-    const nOther = state.tree.hangingMessages.filter((m) => m.from === otherRole).length;
-    treeInfo.textContent = `${nMine} pesan digantung`;
+    nOther = state.tree.hangingMessages.filter((m) => m.from === otherRole).length;
+    treeInfo.textContent = `${nMine} amplop gantung milikmu`;
     if (partnerMemo) {
-      partnerMemo.textContent = `${nOther} amplop dari pasangan`;
+      partnerMemo.textContent = `${nOther} amplop pasangan di pohon`;
     }
 
     const strip = document.getElementById("ltUnreadStrip");
@@ -1579,6 +1764,23 @@ function renderTreeState(tree) {
       }
     }
     maybeNotifyPartnerEnvelopes(nOther);
+
+    const list = state.tree.hangingMessages;
+    if (!hangStatPrimed) {
+      hangSeenIds = new Set(list.map((m) => m.id).filter(Boolean));
+      hangStatPrimed = true;
+    } else {
+      list.forEach((m) => {
+        if (!m.id || hangSeenIds.has(m.id)) {
+          return;
+        }
+        hangSeenIds.add(m.id);
+        const from = m.from === "zahra" ? "zahra" : "arka";
+        if (from !== myRole) {
+          bumpMsgSent(from, 1);
+        }
+      });
+    }
   } else {
     treeInfo.textContent = "—";
     if (partnerMemo) {
@@ -1595,11 +1797,15 @@ function renderTreeState(tree) {
   } else if (OPEN_COOLDOWN_CLIENT_MS > 0 && remaining > 0) {
     openLimitInfo.textContent = `0/1 dibuka · ${formatRemaining(remaining)}`;
   } else {
-    openLimitInfo.textContent = "Buka amplop kapan saja · tanpa cooldown";
+    const opened = getOpenCountToday();
+    openLimitInfo.textContent = `${opened} amplop dibuka hari ini (WIB)`;
   }
 
   updateTreeVitalityUi();
   checkTreeLevelProgress(totalHung);
+  updateLoveHud();
+  const openedLine = openLimitInfo ? openLimitInfo.textContent : "—";
+  updateSideDayBlurb(localName ? nOther : 0, openedLine);
 }
 
 function getMoveDelta() {
@@ -1683,6 +1889,7 @@ function openSocket() {
           fromRole: localName === "zahra" ? "zahra" : "arka",
           text: truncateHistoryText(hangText),
         });
+        bumpMsgSent(localName === "zahra" ? "zahra" : "arka", 1);
       }
       LoveSfx.sparkle();
       memoryTree.classList.remove("romantic-burst");
@@ -1705,6 +1912,23 @@ function openSocket() {
           fromRole,
           text: truncateHistoryText(payload.message || ""),
         });
+        bumpOpenCountToday();
+        if (localName) {
+          const myRole = localName === "zahra" ? "zahra" : "arka";
+          const otherRole = myRole === "arka" ? "zahra" : "arka";
+          const nOtherNow = (state.tree.hangingMessages || []).filter((m) => m.from === otherRole).length;
+          const openEl = document.getElementById("openLimitInfo");
+          if (openEl) {
+            const lastOpen = Number(state.tree.openCooldownByRole[myRole]) || 0;
+            const remaining = OPEN_COOLDOWN_CLIENT_MS - (Date.now() - lastOpen);
+            if (OPEN_COOLDOWN_CLIENT_MS > 0 && remaining > 0) {
+              openEl.textContent = `0/1 dibuka · ${formatRemaining(remaining)}`;
+            } else {
+              openEl.textContent = `${getOpenCountToday()} amplop dibuka hari ini (WIB)`;
+            }
+            updateSideDayBlurb(nOtherNow, openEl.textContent);
+          }
+        }
         showEnvelopeOpenAnimation(fromName, payload.message || "");
       } else if (payload.reason === "cooldown") {
         LoveSfx.softFail();
@@ -1734,6 +1958,7 @@ charPickForm.addEventListener("submit", (event) => {
   }
   localName = chosen;
   resetHistoryPresenceSnapshot();
+  resetHangStatTracking();
   const displayName = chosen === "zahra" ? "Zahra" : "Arka";
   LoveSfx.uiTap();
   showRomanticLoader(displayName);
@@ -1777,6 +2002,7 @@ chatForm.addEventListener("submit", (event) => {
   }
   socket.send(JSON.stringify({ type: "chat", message }));
   appendHistoryEntry({ kind: "chat_sent", text: truncateHistoryText(message) });
+  bumpMsgSent(localName === "zahra" ? "zahra" : "arka", 1);
   localStorage.setItem(STORAGE_LAST_CHAT, String(Date.now()));
   appendCoupleChatPing();
   if (isRomanticMessage(message)) {
@@ -1853,14 +2079,6 @@ function setupLoveUiButtons() {
       el.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   };
-  const focusChat = () => {
-    LoveSfx.uiTap();
-    const el = document.getElementById("chatInput");
-    if (el) {
-      el.focus();
-      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  };
   const focusTree = () => {
     LoveSfx.uiTap();
     if (memoryTree) {
@@ -1868,7 +2086,6 @@ function setupLoveUiButtons() {
     }
   };
   document.getElementById("ltBtnHang")?.addEventListener("click", focusHang);
-  document.getElementById("ltBtnChat")?.addEventListener("click", focusChat);
   document.getElementById("ltBtnTree")?.addEventListener("click", focusTree);
   document.getElementById("btnWriteLove")?.addEventListener("click", focusHang);
   document.getElementById("ltBtnNotifPerm")?.addEventListener("click", () => {
@@ -1907,11 +2124,13 @@ refreshNotifPermButton();
 })();
 
 buildNightStars();
+fillTwilightParticles();
 setupHistoryPanel();
 setupMusicPanel();
 updateWibClock();
 updateSkyJakarta();
 updateTreeVitalityUi();
+updateLoveHud();
 let __lastStoryAgeStage = document.body.dataset.ageStage || "";
 setInterval(() => {
   syncStoryLoveDay();
