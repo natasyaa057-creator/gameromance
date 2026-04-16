@@ -807,62 +807,56 @@ body.love-tree-theme {
   filter: brightness(1.06);
 }
 
-.love-tree-theme .game-area .char-pick-dock {
-  background: transparent;
-  backdrop-filter: none;
-}
-
-.love-tree-theme .game-area .char-pick-box {
-  width: 100%;
-  max-width: 400px;
+.love-tree-theme .game-area .role-pick-hint {
   margin: 0;
-  padding: 14px 16px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 190, 240, 0.4);
-  background: rgba(28, 14, 48, 0.88);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-  font-family: "Nunito", sans-serif;
-}
-
-.love-tree-theme .game-area .char-pick-title {
-  margin: 0 0 6px;
+  padding: 6px 12px;
+  max-width: 28rem;
   text-align: center;
-}
-
-.love-tree-theme .game-area .char-pick-desc {
-  margin: 0 0 10px;
-  text-align: center;
-}
-
-.char-pick-title {
-  font-family: "Pacifico", cursive;
-  font-size: 1.5rem;
-  color: #ffb8e8;
-}
-
-.char-pick-desc {
-  font-size: 0.85rem;
-  color: rgba(230, 210, 255, 0.9);
-}
-
-.char-pick-form input {
-  border-radius: 12px;
-  font-family: "Nunito", sans-serif;
-  font-size: 0.9rem;
-}
-
-.char-pick-form button {
-  border-radius: 12px;
-  font-family: "Nunito", sans-serif;
+  font-size: 0.72rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #ff4d9e, #c86cff);
-  border: none;
+  color: rgba(255, 235, 255, 0.95);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
 }
 
-.char-pick-error {
+.love-tree-theme .game-area .role-pick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.love-tree-theme .game-area .role-pick-btn {
+  min-width: 118px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 200, 240, 0.45);
   font-family: "Nunito", sans-serif;
-  font-size: 0.8rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.love-tree-theme .game-area .role-pick-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.love-tree-theme .game-area .role-pick-btn--arka {
+  background: linear-gradient(145deg, #4a7cff, #2a4acb 55%, #1e3588);
+}
+
+.love-tree-theme .game-area .role-pick-btn--zahra {
+  background: linear-gradient(145deg, #ff5cb0, #d43a8c 55%, #9c2466);
+}
+
+.love-tree-theme .game-area .role-pick-btn .role-pick-name {
+  display: block;
 }
 
 .love-tree-theme .character.me {

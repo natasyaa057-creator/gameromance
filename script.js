@@ -1273,15 +1273,57 @@ const treeInfo = document.getElementById("treeInfo");
 const openLimitInfo = document.getElementById("openLimitInfo");
 const memoryTree = document.getElementById("memoryTree");
 const treeCanopy = document.getElementById("treeCanopy");
-const charPickOverlay = document.getElementById("charPickOverlay");
-const charPickForm = document.getElementById("charPickForm");
-const charPickInput = document.getElementById("charPickInput");
-const charPickError = document.getElementById("charPickError");
+const rolePickLayer = document.getElementById("rolePickLayer");
+const rolePickArka = document.getElementById("rolePickArka");
+const rolePickZahra = document.getElementById("rolePickZahra");
 
 let localName = null;
 let socket = null;
 let loveConnectionGuardTimer = null;
 let loveLoginSettled = false;
+
+function showRolePickLayer() {
+  if (!rolePickLayer) {
+    return;
+  }
+  rolePickLayer.classList.remove("is-hidden");
+  rolePickLayer.setAttribute("aria-hidden", "false");
+}
+
+function hideRolePickLayer() {
+  if (!rolePickLayer) {
+    return;
+  }
+  rolePickLayer.classList.add("is-hidden");
+  rolePickLayer.setAttribute("aria-hidden", "true");
+}
+
+function tryFinalizeLoveLoginFromSync() {
+  if (!state.localId || !localName || loveLoginSettled) {
+    return;
+  }
+  const me = state.players[state.localId];
+  if (!me || me.name !== localName) {
+    return;
+  }
+  loveLoginSettled = true;
+  clearLoveConnectionGuard();
+  if (rolePickLayer) {
+    delete rolePickLayer.dataset.joining;
+  }
+  hideRolePickLayer();
+  hideRomanticLoader(() => {
+    maybeShowDailyLoginGift({ deferMs: 220 });
+  });
+  if (connectionInfo) {
+    connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
+  }
+  refreshNotifPermButton();
+  if (controlsInfo) {
+    controlsInfo.textContent = `Kamu: ${localName.toUpperCase()} | WASD / Arrow Keys`;
+  }
+  updateHeaderAvatars();
+}
 
 function getLoveWebSocketUrl() {
   if (typeof window.GAMEARKA_WS_URL === "string" && window.GAMEARKA_WS_URL.trim()) {
@@ -1333,31 +1375,37 @@ function clearLoveConnectionGuard() {
 }
 
 function failLoveLogin(message) {
-  if (loveLoginSettled) {
+  if (
+    loveLoginSettled
+    && localName
+    && state.localId
+    && state.players[state.localId]
+    && state.players[state.localId].name === localName
+  ) {
     return;
   }
-  loveLoginSettled = true;
+  loveLoginSettled = false;
   clearLoveConnectionGuard();
   hideRomanticLoaderNow();
   if (connectionInfo) {
     connectionInfo.textContent = message;
   }
-  if (charPickError) {
-    charPickError.textContent = message;
-  }
   localName = null;
+  Object.keys(state.players).forEach((id) => {
+    removePlayer(id);
+  });
+  state.localId = null;
   resetHistoryPresenceSnapshot();
   resetHangStatTracking();
   lovePartnerChatPrimed = false;
   lovePartnerChatSnapshot = "";
   loveNotifLastPartnerEnv = undefined;
-  if (charPickOverlay) {
-    delete charPickOverlay.dataset.submitting;
-    charPickOverlay.classList.remove("is-hidden");
-    charPickOverlay.setAttribute("aria-hidden", "false");
+  if (rolePickLayer) {
+    delete rolePickLayer.dataset.joining;
+    showRolePickLayer();
   }
   if (controlsInfo) {
-    controlsInfo.textContent = "Pilih karakter untuk mulai";
+    controlsInfo.textContent = "Klik Arka atau Zahra di arena";
   }
   updateHeaderAvatars();
   try {
@@ -1372,11 +1420,6 @@ function failLoveLogin(message) {
 
 const urlParams = new URLSearchParams(window.location.search);
 const urlHint = (urlParams.get("name") || "").toLowerCase();
-if (urlHint === "zahra" || urlHint === "arka") {
-  if (charPickInput) {
-    charPickInput.value = urlHint;
-  }
-}
 
 const MOVE_KEYS = {
   up: ["w", "arrowup"],
@@ -1913,6 +1956,54 @@ function getMoveDelta() {
   return { dx, dy };
 }
 
+function chooseLoveRole(role) {
+  if (role !== "arka" && role !== "zahra") {
+    return;
+  }
+  if (loveLoginSettled) {
+    return;
+  }
+  if (!rolePickLayer || rolePickLayer.dataset.joining === "1") {
+    return;
+  }
+  rolePickLayer.dataset.joining = "1";
+  localName = role;
+  loveLoginSettled = false;
+  resetHistoryPresenceSnapshot();
+  resetHangStatTracking();
+  hideRolePickLayer();
+  LoveSfx.uiTap();
+  showRomanticLoader(role === "zahra" ? "Zahra" : "Arka");
+  if (controlsInfo) {
+    controlsInfo.textContent = `Menyambung sebagai ${localName.toUpperCase()}…`;
+  }
+  updateHeaderAvatars();
+  clearLoveConnectionGuard();
+  loveConnectionGuardTimer = setTimeout(() => {
+    loveConnectionGuardTimer = null;
+    if (!loveLoginSettled && localName) {
+      if (rolePickLayer) {
+        delete rolePickLayer.dataset.joining;
+      }
+      failLoveLogin(
+        "Server tidak membalas setelah memilih peran. Pastikan `npm start` jalan lalu coba lagi.",
+      );
+    }
+  }, 12000);
+
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    if (connectionInfo) {
+      connectionInfo.textContent = "Meminta peran ke server…";
+    }
+    socket.send(JSON.stringify({ type: "join", name: localName }));
+  } else {
+    if (connectionInfo) {
+      connectionInfo.textContent = `Menyambung ke ${getLoveWebSocketUrl()}…`;
+    }
+    socket = openSocket();
+  }
+}
+
 function openSocket() {
   const socketUrl = getLoveWebSocketUrl();
   const socket = new WebSocket(socketUrl);
@@ -1933,7 +2024,7 @@ function openSocket() {
   });
 
   socket.addEventListener("error", () => {
-    if (!localName || state.localId || loveLoginSettled) {
+    if (loveLoginSettled) {
       return;
     }
     failLoveLogin(
@@ -1944,26 +2035,21 @@ function openSocket() {
 
   socket.addEventListener("close", () => {
     clearLoveConnectionGuard();
-    if (!localName) {
+    if (loveLoginSettled && localName) {
+      if (connectionInfo) {
+        connectionInfo.textContent = "Status: offline (reconnecting...)";
+      }
+      setTimeout(() => {
+        if (localName) {
+          socket = openSocket();
+        }
+      }, 1500);
       return;
     }
-    if (!state.localId) {
-      if (!loveLoginSettled) {
-        failLoveLogin(
-          "Sambungan terputus sebelum masuk ruang game. Pastikan `npm start` jalan, firewall membuka port WebSocket, "
-          + "dan bila halaman di host lain setel meta gamearka:websocket atau ?ws=HOST:PORT ke server Node kamu.",
-        );
-      }
-      return;
-    }
-    if (connectionInfo) {
-      connectionInfo.textContent = "Status: offline (reconnecting...)";
-    }
-    setTimeout(() => {
-      if (localName) {
-        socket = openSocket();
-      }
-    }, 1500);
+    failLoveLogin(
+      "Sambungan terputus sebelum masuk ruang game. Pastikan `npm start` jalan, firewall membuka port WebSocket, "
+      + "dan bila halaman di host lain setel meta gamearka:websocket atau ?ws=HOST:PORT ke server Node kamu.",
+    );
   });
 
   socket.addEventListener("message", (event) => {
@@ -1977,47 +2063,50 @@ function openSocket() {
       if (payload.reason === "role_taken") {
         hideRomanticLoaderNow();
         clearLoveConnectionGuard();
-        loveLoginSettled = true;
+        loveLoginSettled = false;
         resetLoveNotificationState();
         const roleLabel = payload.role === "zahra" ? "Zahra" : "Arka";
-        if (charPickError) {
-          charPickError.textContent = `${roleLabel} sudah dipakai pemain lain. Ketik nama lain.`;
-        }
         localName = null;
         updateHeaderAvatars();
         if (controlsInfo) {
-          controlsInfo.textContent = "Pilih karakter untuk mulai";
+          controlsInfo.textContent = "Klik Arka atau Zahra di arena";
         }
-        if (charPickOverlay) {
-          delete charPickOverlay.dataset.submitting;
-          charPickOverlay.classList.remove("is-hidden");
-          charPickOverlay.setAttribute("aria-hidden", "false");
-        }
-        if (charPickInput) {
-          charPickInput.focus();
+        if (rolePickLayer) {
+          delete rolePickLayer.dataset.joining;
+          showRolePickLayer();
         }
         if (connectionInfo) {
-          connectionInfo.textContent = "Peran ditolak — pilih ulang";
+          connectionInfo.textContent = `${roleLabel} sudah dipakai pemain lain — pilih yang lain.`;
         }
       }
       return;
     }
     if (payload.type === "init") {
-      loveLoginSettled = true;
       clearLoveConnectionGuard();
       state.localId = payload.playerId;
       syncPlayers(payload.players);
       renderTreeState(payload.tree || {});
       updateHeaderAvatars();
-      if (charPickOverlay) {
-        delete charPickOverlay.dataset.submitting;
+      const self = (payload.players || []).find((p) => p.id === payload.playerId);
+      const roleOk = Boolean(self && (self.name === "arka" || self.name === "zahra"));
+      if (roleOk) {
+        localName = self.name;
       }
-      hideRomanticLoader(() => {
-        maybeShowDailyLoginGift({ deferMs: 220 });
-      });
-      if (connectionInfo) {
-        connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
+      hideRomanticLoaderNow();
+      if (!roleOk) {
+        loveLoginSettled = false;
+        showRolePickLayer();
+        if (connectionInfo) {
+          connectionInfo.textContent = "Klik Arka atau Zahra untuk mulai menggerakkan.";
+        }
+        if (controlsInfo) {
+          controlsInfo.textContent = "Klik karakter di arena atau tombol di bawah";
+        }
+        if (urlHint === "arka" || urlHint === "zahra") {
+          setTimeout(() => chooseLoveRole(urlHint), 0);
+        }
       }
+      tryFinalizeLoveLoginFromSync();
       refreshNotifPermButton();
     }
     if (payload.type === "state") {
@@ -2025,13 +2114,13 @@ function openSocket() {
       renderTreeState(payload.tree || {});
       const lo = document.getElementById("loadingOverlay");
       if (localName && state.localId && lo && !lo.classList.contains("is-hidden")) {
-        loveLoginSettled = true;
         clearLoveConnectionGuard();
         hideRomanticLoader();
         if (connectionInfo) {
           connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
         }
       }
+      tryFinalizeLoveLoginFromSync();
     }
     if (payload.type === "hang_success") {
       localStorage.setItem(STORAGE_LAST_HANG, String(Date.now()));
@@ -2098,55 +2187,29 @@ function openSocket() {
   return socket;
 }
 
-charPickForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!charPickInput || !charPickError || !charPickOverlay) {
-    return;
-  }
-  if (charPickOverlay.dataset.submitting === "1") {
-    return;
-  }
-  charPickError.textContent = "";
-  const raw = charPickInput.value.trim().toLowerCase();
-  let chosen;
-  if (raw === "zahra") {
-    chosen = "zahra";
-  } else if (raw === "arka") {
-    chosen = "arka";
-  } else {
-    charPickError.textContent = "Ketik arka atau zahra saja.";
-    return;
-  }
-  charPickOverlay.dataset.submitting = "1";
-  loveLoginSettled = false;
-  clearLoveConnectionGuard();
-  localName = chosen;
-  resetHistoryPresenceSnapshot();
-  resetHangStatTracking();
-  const displayName = chosen === "zahra" ? "Zahra" : "Arka";
-  LoveSfx.uiTap();
-  showRomanticLoader(displayName);
-  charPickOverlay.classList.add("is-hidden");
-  charPickOverlay.setAttribute("aria-hidden", "true");
-  controlsInfo.textContent = `Kamu: ${localName.toUpperCase()} | WASD / Arrow Keys`;
-  updateHeaderAvatars();
+rolePickArka?.addEventListener("click", () => {
+  chooseLoveRole("arka");
+});
+rolePickZahra?.addEventListener("click", () => {
+  chooseLoveRole("zahra");
+});
 
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    connectionInfo.textContent = "Mengganti peran…";
-    socket.send(JSON.stringify({ type: "join", name: localName }));
-  } else {
-    connectionInfo.textContent = `Menyambung ke ${getLoveWebSocketUrl()}…`;
-    socket = openSocket();
-    loveConnectionGuardTimer = setTimeout(() => {
-      loveConnectionGuardTimer = null;
-      if (!loveLoginSettled && localName && !state.localId) {
-        failLoveLogin(
-          "Tidak ada balasan dari server. Pastikan di folder project ini perintah `npm start` sudah jalan (port 3000). "
-          + "Halaman dari XAMPP (port 80) tetap memakai WebSocket ke Node :3000.",
-        );
-      }
-    }, 12000);
+gameArea?.addEventListener("click", (event) => {
+  if (loveLoginSettled) {
+    return;
   }
+  const ch = event.target.closest(".character");
+  if (!ch) {
+    return;
+  }
+  const id = ch.dataset.playerId;
+  const pl = id && state.players[id];
+  if (!pl || (pl.name !== "arka" && pl.name !== "zahra")) {
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  chooseLoveRole(pl.name);
 });
 
 window.addEventListener("keydown", (event) => {
@@ -2170,7 +2233,7 @@ window.addEventListener("keyup", (event) => {
 chatForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = sanitizeText(chatInput.value.trim());
-  if (!message || !socket || socket.readyState !== WebSocket.OPEN) {
+  if (!loveLoginSettled || !message || !socket || socket.readyState !== WebSocket.OPEN) {
     return;
   }
   socket.send(JSON.stringify({ type: "chat", message }));
@@ -2191,7 +2254,7 @@ chatForm?.addEventListener("submit", (event) => {
 hangForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const message = sanitizeLongText(hangInput.value.trim());
-  if (!message || !socket || socket.readyState !== WebSocket.OPEN) {
+  if (!loveLoginSettled || !message || !socket || socket.readyState !== WebSocket.OPEN) {
     return;
   }
   LoveSfx.swoosh();
@@ -2201,6 +2264,11 @@ hangForm?.addEventListener("submit", (event) => {
 });
 
 memoryTree.addEventListener("click", () => {
+  if (!loveLoginSettled) {
+    showPopupMessage("Pilih Arka atau Zahra dulu — klik karakter di arena.");
+    LoveSfx.softFail();
+    return;
+  }
   if (!socket || socket.readyState !== WebSocket.OPEN) {
     showPopupMessage("Koneksi belum online.");
     LoveSfx.softFail();
@@ -2212,7 +2280,8 @@ memoryTree.addEventListener("click", () => {
 
 function gameLoop() {
   if (
-    localName
+    loveLoginSettled
+    && localName
     && socket
     && socket.readyState === WebSocket.OPEN
     && state.localId
@@ -2278,6 +2347,17 @@ function setupLoveUiButtons() {
 
 setupLoveUiButtons();
 refreshNotifPermButton();
+
+clearLoveConnectionGuard();
+loveConnectionGuardTimer = setTimeout(() => {
+  loveConnectionGuardTimer = null;
+  if (!loveLoginSettled && !state.localId) {
+    failLoveLogin(
+      "Tidak ada balasan dari server game. Pastikan `npm start` jalan (port 3000) atau atur meta gamearka:websocket / ?ws=.",
+    );
+  }
+}, 15000);
+socket = openSocket();
 
 (function setupDailyGiftAndLevelUi() {
   document.getElementById("dailyGiftClose")?.addEventListener("click", () => {

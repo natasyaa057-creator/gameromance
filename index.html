@@ -24,19 +24,20 @@
       color: #f5f0ff;
       font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
     }
-    .game-area .char-pick-dock {
+    .game-area .role-pick-layer {
       position: absolute;
-      left: 50%;
-      bottom: 10px;
-      transform: translateX(-50%);
-      z-index: 24;
-      width: min(96%, 400px);
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      z-index: 28;
       display: flex;
-      justify-content: center;
-      pointer-events: auto;
-      padding: 0 8px;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      padding: 0 10px;
     }
-    .game-area .char-pick-dock.is-hidden {
+    .game-area .role-pick-layer.is-hidden {
       display: none !important;
       pointer-events: none !important;
     }
@@ -172,15 +173,15 @@
             <div class="sleep-ghost-body"></div>
             <span class="sleep-ghost-label">Menunggu…</span>
           </div>
-          <div id="charPickOverlay" class="char-pick-dock" aria-hidden="false" role="region" aria-label="Pilih karakter">
-            <div class="char-pick-box">
-              <p class="char-pick-title">Pilih karakter</p>
-              <p class="char-pick-desc">Ketik <strong>arka</strong> atau <strong>zahra</strong> — lalu mulai.</p>
-              <form id="charPickForm" class="char-pick-form">
-                <input id="charPickInput" type="text" maxlength="12" autocomplete="off" placeholder="arka / zahra" autofocus>
-                <button type="submit">Mulai</button>
-              </form>
-              <p id="charPickError" class="char-pick-error" role="alert"></p>
+          <div id="rolePickLayer" class="role-pick-layer is-hidden" aria-hidden="true" role="region" aria-label="Pilih peran">
+            <p class="role-pick-hint">Klik salah satu karakter di arena — atau tombol di bawah</p>
+            <div class="role-pick-row">
+              <button type="button" id="rolePickArka" class="role-pick-btn role-pick-btn--arka" aria-label="Main sebagai Arka">
+                <span class="role-pick-name">Arka</span>
+              </button>
+              <button type="button" id="rolePickZahra" class="role-pick-btn role-pick-btn--zahra" aria-label="Main sebagai Zahra">
+                <span class="role-pick-name">Zahra</span>
+              </button>
             </div>
           </div>
         </main>
@@ -188,13 +189,13 @@
           <div class="lt-side-day-card">
             <div class="lt-side-day-icon" aria-hidden="true">✉️</div>
             <h3 class="lt-side-day-heading">Pesan hari ini</h3>
-            <p class="lt-side-day-blurb" id="ltSideDayBlurb">Pilih karakter untuk mulai.</p>
+            <p class="lt-side-day-blurb" id="ltSideDayBlurb">Klik Arka atau Zahra di arena untuk mulai.</p>
           </div>
         </aside>
         </div>
 
         <div class="lt-bottom-bar">
-          <p id="controlsInfo" class="lt-hint">Pilih karakter untuk mulai</p>
+          <p id="controlsInfo" class="lt-hint">Klik Arka atau Zahra di arena</p>
           <p id="connectionInfo" class="lt-status">Belum terhubung</p>
           <div id="ltUnreadStrip" class="lt-unread-strip is-hidden" role="status" aria-live="polite"></div>
           <button type="button" id="ltBtnNotifPerm" class="lt-notif-perm" hidden>🔔 Izinkan notifikasi di perangkat</button>
