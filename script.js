@@ -253,12 +253,15 @@ function showRomanticLoader(displayName) {
   overlay?.setAttribute("aria-hidden", "false");
 }
 
-function hideRomanticLoader() {
+function hideRomanticLoader(onFullyHidden) {
   const overlay = document.getElementById("loadingOverlay");
   const wait = Math.max(0, romanticLoaderMinUntil - Date.now());
   setTimeout(() => {
     overlay?.classList.add("is-hidden");
     overlay?.setAttribute("aria-hidden", "true");
+    if (typeof onFullyHidden === "function") {
+      setTimeout(onFullyHidden, 120);
+    }
   }, wait);
 }
 
@@ -317,7 +320,7 @@ function closeDailyGiftOverlay() {
   LoveSfx.uiTap();
 }
 
-function maybeShowDailyLoginGift() {
+function maybeShowDailyLoginGift(options = {}) {
   if (!localName || !isLoveTheme()) {
     return;
   }
@@ -329,7 +332,8 @@ function maybeShowDailyLoginGift() {
     return;
   }
   window.__dailyGiftSessionKey = key;
-  setTimeout(() => showDailyGiftOverlay(), 420);
+  const deferMs = typeof options.deferMs === "number" ? options.deferMs : 420;
+  setTimeout(() => showDailyGiftOverlay(), deferMs);
 }
 
 function showLevelUpCelebration(newLevel) {
@@ -1344,6 +1348,7 @@ function failLoveLogin(message) {
   lovePartnerChatSnapshot = "";
   loveNotifLastPartnerEnv = undefined;
   if (charPickOverlay) {
+    delete charPickOverlay.dataset.submitting;
     charPickOverlay.classList.remove("is-hidden");
     charPickOverlay.setAttribute("aria-hidden", "false");
   }
@@ -1969,6 +1974,7 @@ function openSocket() {
         localName = null;
         updateHeaderAvatars();
         controlsInfo.textContent = "Pilih karakter untuk mulai";
+        delete charPickOverlay.dataset.submitting;
         charPickOverlay.classList.remove("is-hidden");
         charPickOverlay.setAttribute("aria-hidden", "false");
         charPickInput.focus();
@@ -1983,12 +1989,16 @@ function openSocket() {
       syncPlayers(payload.players);
       renderTreeState(payload.tree || {});
       updateHeaderAvatars();
-      hideRomanticLoader();
+      if (charPickOverlay) {
+        delete charPickOverlay.dataset.submitting;
+      }
+      hideRomanticLoader(() => {
+        maybeShowDailyLoginGift({ deferMs: 220 });
+      });
       if (connectionInfo) {
         connectionInfo.textContent = "Terhubung · selamat datang di Love Tree";
       }
       refreshNotifPermButton();
-      maybeShowDailyLoginGift();
     }
     if (payload.type === "state") {
       syncPlayers(payload.players);
@@ -2073,6 +2083,9 @@ charPickForm?.addEventListener("submit", (event) => {
   if (!charPickInput || !charPickError || !charPickOverlay) {
     return;
   }
+  if (charPickOverlay.dataset.submitting === "1") {
+    return;
+  }
   charPickError.textContent = "";
   const raw = charPickInput.value.trim().toLowerCase();
   let chosen;
@@ -2084,6 +2097,7 @@ charPickForm?.addEventListener("submit", (event) => {
     charPickError.textContent = "Ketik arka atau zahra saja.";
     return;
   }
+  charPickOverlay.dataset.submitting = "1";
   loveLoginSettled = false;
   clearLoveConnectionGuard();
   localName = chosen;

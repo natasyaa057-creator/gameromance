@@ -36,10 +36,15 @@
     }
     .char-pick-overlay.is-hidden { display: none !important; pointer-events: none !important; }
     .app-shell { max-width: 1320px; margin: 0 auto; width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
-    #dailyGiftOverlay, #loadingOverlay, #levelUpOverlay, #historyJournalPanel {
+    #loadingOverlay {
       position: fixed;
       inset: 0;
-      z-index: 420;
+      z-index: 480;
+    }
+    #dailyGiftOverlay, #levelUpOverlay, #historyJournalPanel {
+      position: fixed;
+      inset: 0;
+      z-index: 430;
     }
     #musicPanel {
       position: fixed;

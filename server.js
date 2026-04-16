@@ -22,7 +22,25 @@ const openCooldownByRole = {
   zahra: 0,
 };
 
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), { fallthrough: true }));
+
+/* SPA: semua GET tanpa file fisik → index.html (hindari layar "Not Found" setelah navigasi / bookmark salah) */
+app.get(/.*/, (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    next();
+    return;
+  }
+  const ext = path.extname(req.path);
+  if (ext && ext !== ".html") {
+    res.status(404).type("text/plain").send("Not Found");
+    return;
+  }
+  res.sendFile(path.join(__dirname, "index.html"), (err) => {
+    if (err) {
+      next(err);
+    }
+  });
+});
 
 function spawnBelowTree(role) {
   const y = 432;

@@ -999,7 +999,7 @@ body.love-tree-theme {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  z-index: 400;
+  z-index: 480;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1882,7 +1882,7 @@ body.love-tree-theme {
 .daily-gift-overlay {
   position: fixed;
   inset: 0;
-  z-index: 420;
+  z-index: 430;
   display: flex;
   align-items: center;
   justify-content: center;
