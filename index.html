@@ -4,8 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Love Tree — Arka & Zahra</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="love-theme.css">
+  <!-- Font di HTML agar tidak bergantung pada @import di CSS (lebih tahan gagal) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;family=Pacifico&amp;display=swap" rel="stylesheet">
+  <!-- ./ memastikan CSS ketemu dari subfolder / file:// / XAMPP -->
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./love-theme.css">
+  <style>
+    /* Fallback minimal bila stylesheet eksternal tidak terbaca (path salah, MIME, dsb.) */
+    html { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: inherit; }
+    body.love-tree-theme {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #0f0618 0%, #1a0d28 45%, #12061c 100%);
+      color: #f5f0ff;
+      font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+    }
+    .char-pick-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(10, 4, 18, 0.92);
+    }
+    .char-pick-overlay.is-hidden { display: none !important; pointer-events: none !important; }
+    .app-shell { max-width: 1320px; margin: 0 auto; width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+    #dailyGiftOverlay, #loadingOverlay, #levelUpOverlay, #historyJournalPanel {
+      position: fixed;
+      inset: 0;
+      z-index: 420;
+    }
+    #musicPanel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(100%, 360px);
+      z-index: 380;
+      background: rgba(18, 8, 32, 0.96);
+      overflow: auto;
+    }
+    #dailyGiftOverlay.is-hidden,
+    #loadingOverlay.is-hidden,
+    #levelUpOverlay.is-hidden,
+    #historyJournalPanel.is-hidden,
+    #musicPanel.is-hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
 <body class="love-tree-theme">
   <div class="app-shell">
@@ -221,6 +273,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
