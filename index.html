@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Love Tree — Arka & Zahra</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="love-theme.css">
+</head>
+<body class="love-tree-theme">
+  <div class="app-shell">
+    <header class="lt-header">
+      <div class="lt-brand">
+        <h1 class="lt-logo">Love Tree</h1>
+        <span class="lt-tagline">Pohon Cinta Kalian · Arka &amp; Zahra</span>
+        <div class="lt-clock" id="ltClockWib" aria-live="polite">WIB — …</div>
+        <div class="lt-tree-level" id="ltTreeLevel">Pohon Lv. 1</div>
+      </div>
+      <div class="lt-header-cards">
+        <div class="lt-card lt-card-you">
+          <span class="lt-card-label">Kamu</span>
+          <div class="lt-card-avatar" id="ltAvatarYou" aria-hidden="true">?</div>
+          <span id="treeInfo" class="lt-card-memo">—</span>
+        </div>
+        <div class="lt-card lt-card-day">
+          <span>Pesan hari ini</span>
+          <strong id="openLimitInfo">—</strong>
+        </div>
+        <div class="lt-card lt-card-partner">
+          <span class="lt-card-label">Pasangan</span>
+          <div class="lt-card-avatar lt-card-avatar--partner" id="ltAvatarPartner" aria-hidden="true">?</div>
+          <span id="ltPartnerMemo" class="lt-card-memo">—</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="lt-workspace">
+      <aside class="lt-sidebar" aria-label="Menu">
+        <button type="button" class="lt-sb-btn lt-sb-btn--music" id="ltBtnMusic" title="Masuk — musik romantis" aria-expanded="false" aria-controls="musicPanel">🎵</button>
+        <button type="button" class="lt-sb-btn" id="ltBtnHang" title="Gantung pesan di pohon">✉️</button>
+        <button type="button" class="lt-sb-btn" id="ltBtnChat" title="Chat cepat">💬</button>
+        <button type="button" class="lt-sb-btn" id="ltBtnTree" title="Fokus pohon">🌳</button>
+        <button type="button" class="lt-sb-btn lt-sb-btn--history" id="ltBtnHistory" title="Buku kenangan — riwayat chat dan kehadiran" aria-expanded="false" aria-controls="historyJournalPanel">📜<span id="ltHistoryBadge" class="lt-history-badge is-hidden" aria-hidden="true"></span></button>
+      </aside>
+
+      <div class="lt-stage-wrap">
+        <main id="gameArea" class="game-area" data-sky="day" data-tree-tier="normal" data-weather="clear" data-moon-couple="0" data-couple-awake="1">
+          <div class="ambient-sparkles" aria-hidden="true"></div>
+          <div class="love-scene-bg" aria-hidden="true"></div>
+          <div class="sky-cycle-layer" id="skyCycleLayer" aria-hidden="true"></div>
+          <div class="dusk-romantic-layer" id="duskRomanticLayer" aria-hidden="true"></div>
+          <div class="rain-layer" id="rainLayer" aria-hidden="true"></div>
+          <div class="night-celestial" id="nightCelestial" aria-hidden="true"></div>
+          <div class="moon-couple-layer" id="moonCoupleLayer" aria-hidden="true">
+            <div class="moon-couple-glow" aria-hidden="true"></div>
+            <div class="moon-couple-sil moon-couple-sil--l" aria-hidden="true"></div>
+            <div class="moon-couple-sil moon-couple-sil--r" aria-hidden="true"></div>
+            <div class="moon-couple-heart" aria-hidden="true"></div>
+          </div>
+          <div class="love-scene-vignette" aria-hidden="true"></div>
+          <div class="day-counter-wrap" id="dayCounterWrap">
+            <div class="day-counter-glow"></div>
+            <div class="day-counter" id="loveDayLabel">Day 1</div>
+            <div class="day-counter-sub">Cerita kalian tumbuh tiap hari (WIB)</div>
+          </div>
+          <div id="memoryTree" class="memory-tree" title="Klik untuk buka pesan pasangan" data-tree-shape="1" data-tree-fx="0">
+            <div class="tree-silhouette" aria-hidden="true"></div>
+            <div class="tree-glow"></div>
+            <div class="tree-fx-layer" id="treeFxLayer" aria-hidden="true"></div>
+            <div id="treeCanopy" class="tree-canopy">
+              <div class="canopy-depth"></div>
+            </div>
+          </div>
+          <div id="sleepGhostPartner" class="sleep-ghost-partner is-hidden" aria-hidden="true" data-side="right">
+            <div class="sleep-ghost-zzz" aria-hidden="true">z z z</div>
+            <div class="sleep-ghost-body"></div>
+            <span class="sleep-ghost-label">Menunggu…</span>
+          </div>
+        </main>
+
+        <div class="lt-bottom-bar">
+          <p id="controlsInfo" class="lt-hint">Pilih karakter untuk mulai</p>
+          <p id="connectionInfo" class="lt-status">Belum terhubung</p>
+          <div id="ltUnreadStrip" class="lt-unread-strip is-hidden" role="status" aria-live="polite"></div>
+          <button type="button" id="ltBtnNotifPerm" class="lt-notif-perm" hidden>🔔 Izinkan notifikasi di perangkat</button>
+          <div class="lt-msg-row">
+            <form id="hangForm" class="chat-form hang-form-love">
+              <input id="hangInput" type="text" maxlength="8000" placeholder="Tulis pesan untuk pohon…">
+              <button type="submit">Gantung</button>
+            </form>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" type="text" maxlength="8000" placeholder="Chat ke pasangan…">
+              <button type="submit">Kirim</button>
+            </form>
+          </div>
+          <div class="lt-cta-row">
+            <button type="button" class="lt-cta" id="btnWriteLove">Tulis Pesan Baru</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dailyGiftOverlay" class="daily-gift-overlay is-hidden" aria-hidden="true">
+    <div class="daily-gift-modal" role="dialog" aria-modal="true" aria-labelledby="dailyGiftHeading">
+      <p id="dailyGiftHeading" class="daily-gift-heading">Kado harian untukmu</p>
+      <p class="daily-gift-sub">Login hari ini (WIB) · buka dengan penuh rasa</p>
+      <div class="daily-gift-stage">
+        <div class="daily-gift-box-3d">
+          <div class="daily-gift-lid"></div>
+          <div class="daily-gift-ribbon-v"></div>
+          <div class="daily-gift-ribbon-h"></div>
+          <div class="daily-gift-body"></div>
+        </div>
+        <div class="daily-gift-card">
+          <p class="daily-gift-message" id="dailyGiftMessage"></p>
+        </div>
+      </div>
+      <button type="button" class="daily-gift-close" id="dailyGiftClose">Terima dengan cinta 💕</button>
+    </div>
+  </div>
+
+  <div id="levelUpOverlay" class="level-up-overlay is-hidden" aria-hidden="true">
+    <div class="level-up-modal" role="dialog" aria-modal="true" aria-labelledby="levelUpTitle">
+      <div class="level-up-sparkles" aria-hidden="true"></div>
+      <p id="levelUpTitle" class="level-up-title">Level baru!</p>
+      <p id="levelUpSub" class="level-up-sub"></p>
+      <p class="level-up-hint">Efek pohon &amp; bentuk semakin indah.</p>
+    </div>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay is-hidden" aria-hidden="true">
+    <div class="loading-inner">
+      <div class="loading-hearts" aria-hidden="true"></div>
+      <p class="loading-title">Memasuki Love Tree…</p>
+      <p class="loading-sub" id="loadingNameHint">Menyambungkan hatimu ke pohon</p>
+      <div class="loading-bar"><span class="loading-bar-fill"></span></div>
+    </div>
+  </div>
+
+  <div id="historyJournalPanel" class="history-journal-overlay is-hidden" aria-hidden="true">
+    <button type="button" class="history-journal-backdrop" id="historyJournalBackdrop" tabindex="-1" aria-label="Tutup buku kenangan"></button>
+    <div class="history-journal-sheet" role="dialog" aria-modal="true" aria-labelledby="historyJournalTitle">
+      <button type="button" class="history-journal-close" id="historyJournalClose" aria-label="Tutup">×</button>
+      <div class="history-journal-paper">
+        <div class="history-journal-folds" aria-hidden="true"></div>
+        <div class="history-journal-inner">
+          <h2 id="historyJournalTitle" class="history-journal-title">Buku Kenangan</h2>
+          <p class="history-journal-sub">Catatan lembut: kehadiran, chat, amplop yang digantung, dan yang sudah kamu buka — semua dengan waktu WIB.</p>
+          <div id="historyJournalList" class="history-journal-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="musicPanel" class="music-panel is-hidden" aria-hidden="true">
+    <div class="music-panel-head">
+      <span>Masuk — musik romantis</span>
+      <button type="button" class="music-panel-close" id="musicPanelClose" aria-label="Tutup">×</button>
+    </div>
+    <p class="music-panel-tip">Musik ikut waktu (piano siang · lofi malam) sampai kamu pilih lagu lalu Stop untuk kembali otomatis.</p>
+    <audio id="romanticAudio" preload="none"></audio>
+    <div class="music-panel-controls">
+      <button type="button" id="musicBtnPause">Jeda</button>
+      <button type="button" id="musicBtnStop">Stop</button>
+    </div>
+    <ul class="music-track-list" id="musicTrackList"></ul>
+  </div>
+
+  <audio id="moodAmbientAudio" loop preload="none"></audio>
+
+  <div id="charPickOverlay" class="char-pick-overlay" aria-hidden="false">
+    <div class="char-pick-box">
+      <p class="char-pick-title">Mulai dulu</p>
+      <p class="char-pick-desc">Ketik <strong>arka</strong> atau <strong>zahra</strong> untuk memilih siapa yang kamu gerakkan.</p>
+      <form id="charPickForm" class="char-pick-form">
+        <input id="charPickInput" type="text" maxlength="12" autocomplete="off" placeholder="arka / zahra" autofocus>
+        <button type="submit">Mulai</button>
+      </form>
+      <p id="charPickError" class="char-pick-error" role="alert"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

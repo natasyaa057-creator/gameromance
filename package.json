@@ -1,0 +1,17 @@
+{
+  "name": "gamearka-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple online arena for Arka and Zahra",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
