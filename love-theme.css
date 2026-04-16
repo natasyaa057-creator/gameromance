@@ -807,17 +807,32 @@ body.love-tree-theme {
   filter: brightness(1.06);
 }
 
-.char-pick-overlay {
-  background: rgba(12, 5, 22, 0.88);
-  backdrop-filter: blur(10px);
+.love-tree-theme .game-area .char-pick-dock {
+  background: transparent;
+  backdrop-filter: none;
 }
 
-.char-pick-box {
-  border-radius: 20px;
-  border: 1px solid rgba(255, 190, 240, 0.35);
-  background: rgba(45, 28, 72, 0.92);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+.love-tree-theme .game-area .char-pick-box {
+  width: 100%;
+  max-width: 400px;
+  margin: 0;
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 190, 240, 0.4);
+  background: rgba(28, 14, 48, 0.88);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   font-family: "Nunito", sans-serif;
+}
+
+.love-tree-theme .game-area .char-pick-title {
+  margin: 0 0 6px;
+  text-align: center;
+}
+
+.love-tree-theme .game-area .char-pick-desc {
+  margin: 0 0 10px;
+  text-align: center;
 }
 
 .char-pick-title {

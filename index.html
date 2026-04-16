@@ -24,17 +24,22 @@
       color: #f5f0ff;
       font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
     }
-    .char-pick-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
+    .game-area .char-pick-dock {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      z-index: 24;
+      width: min(96%, 400px);
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 20px;
-      background: rgba(10, 4, 18, 0.92);
+      pointer-events: auto;
+      padding: 0 8px;
     }
-    .char-pick-overlay.is-hidden { display: none !important; pointer-events: none !important; }
+    .game-area .char-pick-dock.is-hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
     .app-shell { max-width: 1320px; margin: 0 auto; width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
     #loadingOverlay {
       position: fixed;
@@ -167,6 +172,17 @@
             <div class="sleep-ghost-body"></div>
             <span class="sleep-ghost-label">Menunggu…</span>
           </div>
+          <div id="charPickOverlay" class="char-pick-dock" aria-hidden="false" role="region" aria-label="Pilih karakter">
+            <div class="char-pick-box">
+              <p class="char-pick-title">Pilih karakter</p>
+              <p class="char-pick-desc">Ketik <strong>arka</strong> atau <strong>zahra</strong> — lalu mulai.</p>
+              <form id="charPickForm" class="char-pick-form">
+                <input id="charPickInput" type="text" maxlength="12" autocomplete="off" placeholder="arka / zahra" autofocus>
+                <button type="submit">Mulai</button>
+              </form>
+              <p id="charPickError" class="char-pick-error" role="alert"></p>
+            </div>
+          </div>
         </main>
         <aside class="lt-scene-sidepanel" aria-label="Ringkasan pesan hari ini">
           <div class="lt-side-day-card">
@@ -267,18 +283,6 @@
   </div>
 
   <audio id="moodAmbientAudio" loop preload="none"></audio>
-
-  <div id="charPickOverlay" class="char-pick-overlay" aria-hidden="false">
-    <div class="char-pick-box">
-      <p class="char-pick-title">Mulai dulu</p>
-      <p class="char-pick-desc">Ketik <strong>arka</strong> atau <strong>zahra</strong> untuk memilih siapa yang kamu gerakkan.</p>
-      <form id="charPickForm" class="char-pick-form">
-        <input id="charPickInput" type="text" maxlength="12" autocomplete="off" placeholder="arka / zahra" autofocus>
-        <button type="submit">Mulai</button>
-      </form>
-      <p id="charPickError" class="char-pick-error" role="alert"></p>
-    </div>
-  </div>
 
   <script src="./script.js"></script>
 </body>

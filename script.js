@@ -1306,6 +1306,10 @@ function getLoveWebSocketUrl() {
     return `${secure ? "wss" : "ws"}://${metaContent.replace(/^\/+/, "")}`;
   }
 
+  if (window.location.protocol === "file:") {
+    return "ws://127.0.0.1:3000";
+  }
+
   const secure = window.location.protocol === "https:";
   const wsProto = secure ? "wss" : "ws";
   const host = window.location.hostname;
@@ -1944,6 +1948,12 @@ function openSocket() {
       return;
     }
     if (!state.localId) {
+      if (!loveLoginSettled) {
+        failLoveLogin(
+          "Sambungan terputus sebelum masuk ruang game. Pastikan `npm start` jalan, firewall membuka port WebSocket, "
+          + "dan bila halaman di host lain setel meta gamearka:websocket atau ?ws=HOST:PORT ke server Node kamu.",
+        );
+      }
       return;
     }
     if (connectionInfo) {
@@ -1970,15 +1980,25 @@ function openSocket() {
         loveLoginSettled = true;
         resetLoveNotificationState();
         const roleLabel = payload.role === "zahra" ? "Zahra" : "Arka";
-        charPickError.textContent = `${roleLabel} sudah dipakai pemain lain. Ketik nama lain.`;
+        if (charPickError) {
+          charPickError.textContent = `${roleLabel} sudah dipakai pemain lain. Ketik nama lain.`;
+        }
         localName = null;
         updateHeaderAvatars();
-        controlsInfo.textContent = "Pilih karakter untuk mulai";
-        delete charPickOverlay.dataset.submitting;
-        charPickOverlay.classList.remove("is-hidden");
-        charPickOverlay.setAttribute("aria-hidden", "false");
-        charPickInput.focus();
-        connectionInfo.textContent = "Peran ditolak — pilih ulang";
+        if (controlsInfo) {
+          controlsInfo.textContent = "Pilih karakter untuk mulai";
+        }
+        if (charPickOverlay) {
+          delete charPickOverlay.dataset.submitting;
+          charPickOverlay.classList.remove("is-hidden");
+          charPickOverlay.setAttribute("aria-hidden", "false");
+        }
+        if (charPickInput) {
+          charPickInput.focus();
+        }
+        if (connectionInfo) {
+          connectionInfo.textContent = "Peran ditolak — pilih ulang";
+        }
       }
       return;
     }

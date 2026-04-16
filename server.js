@@ -106,12 +106,14 @@ function broadcast(payload) {
   });
 }
 
+const PENDING_ROLE = "_connecting";
+
 wss.on("connection", (socket) => {
   const playerId = `p_${Math.random().toString(36).slice(2, 10)}`;
   const spawn = spawnBelowTree("arka");
   const player = {
     id: playerId,
-    name: "arka",
+    name: PENDING_ROLE,
     x: spawn.x,
     y: spawn.y,
     message: "",
@@ -141,7 +143,10 @@ wss.on("connection", (socket) => {
       }
       const want = rawName === "zahra" ? "zahra" : "arka";
       const roleTaken = Array.from(players.values()).some(
-        (other) => other.id !== playerId && other.name === want,
+        (other) =>
+          other.id !== playerId
+          && (other.name === "arka" || other.name === "zahra")
+          && other.name === want,
       );
       if (roleTaken) {
         try {
@@ -164,6 +169,9 @@ wss.on("connection", (socket) => {
     }
 
     if (data.type === "move") {
+      if (current.name !== "arka" && current.name !== "zahra") {
+        return;
+      }
       const x = Number(data.x);
       const y = Number(data.y);
       if (Number.isFinite(x) && Number.isFinite(y)) {
@@ -175,6 +183,9 @@ wss.on("connection", (socket) => {
     }
 
     if (data.type === "chat") {
+      if (current.name !== "arka" && current.name !== "zahra") {
+        return;
+      }
       const nextMessage = String(data.message || "").replace(/[<>]/g, "").slice(0, CHAT_MAX_LEN);
       current.message = nextMessage;
       broadcastState();
@@ -182,6 +193,9 @@ wss.on("connection", (socket) => {
     }
 
     if (data.type === "hang_message") {
+      if (current.name !== "arka" && current.name !== "zahra") {
+        return;
+      }
       const content = String(data.message || "").replace(/[<>]/g, "").slice(0, HANG_MAX_LEN).trim();
       if (!content) {
         return;
@@ -203,6 +217,9 @@ wss.on("connection", (socket) => {
     }
 
     if (data.type === "open_tree_message") {
+      if (current.name !== "arka" && current.name !== "zahra") {
+        return;
+      }
       const openerRole = current.name === "zahra" ? "zahra" : "arka";
       const targetRole = openerRole === "arka" ? "zahra" : "arka";
       const now = Date.now();
